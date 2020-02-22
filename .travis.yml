@@ -1,0 +1,21 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t vonix/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run vonix/react-test npm test -- --coverage
+
+after_success:
+    - docker build -t vonix/multi-client ./client
+    - docker build -t vonix/multi-nginx ./nginx
+    - docker build -t vonix/multi-server ./server
+    - docker build -t vonix/multi-worker ./worker
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" -- password-stdin
+    - docker push vonix/multi-client
+    - docker push vonix/multi-nginx
+    - docker push vonix/multi-server
+    - docker push vonix/multi-worker
+
